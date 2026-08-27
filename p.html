@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Colmédica · Tu propuesta</title>
+<meta name="theme-color" content="#021c38">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet" crossorigin="anonymous">
+<link rel="stylesheet" href="css/deck.css">
+</head>
+<body data-modo="desktop">
+
+<!-- Deck desktop -->
+<div class="deck-escenario">
+  <div class="deck-marco" id="deck-marco">
+    <div class="deck-progreso"><span class="relleno" id="prog-relleno"></span></div>
+    <div class="deck-controles">
+      <button class="flecha izq" id="f-izq" aria-label="Slide anterior">◀</button>
+      <button class="flecha der" id="f-der" aria-label="Slide siguiente">▶</button>
+    </div>
+    <div class="deck-pie">
+      <div class="puntos" id="puntos"></div>
+    </div>
+    <span class="contador-slides" id="contador">01 / 10</span>
+  </div>
+</div>
+
+<!-- Historias móvil -->
+<div class="historias" id="historias"></div>
+
+<!-- Toggle demo desktop/móvil + exportar PDF -->
+<button class="modo-toggle" id="modo-toggle">📱 Ver versión móvil</button>
+<button class="modo-toggle pdf-btn" id="btn-pdf" title="Descargar la presentación como archivo PDF">📄 Descargar PDF</button>
+
+<script src="js/data.js"></script>
+<script src="js/deck.js"></script>
+</body>
+</html>

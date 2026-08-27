@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colmédica Presenta · Acceso comercial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="login-grid">
+
+  <div class="login-form-lado">
+    <div class="marca">
+      <div class="marca-placa"><img src="img/colmedica-logo-white.png" alt="Colmédica"></div>
+      <span class="marca-sufijo">Presenta<b>.</b></span>
+    </div>
+
+    <h1 class="login-titulo">Tu presentación corporativa,<br><em>lista para vender</em>.</h1>
+    <p class="login-sub">Plataforma interna para la fuerza comercial: personaliza la presentación estándar, ajusta la propuesta económica y compártela con tus clientes en segundos.</p>
+
+    <form id="form-login" autocomplete="off">
+      <div class="campo">
+        <label for="lg-email">Correo corporativo</label>
+        <input id="lg-email" type="email" placeholder="nombre@colmedica.com">
+      </div>
+      <div class="campo">
+        <label for="lg-clave">Contraseña</label>
+        <input id="lg-clave" type="password" placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-azul" style="width:100%;margin-top:.4rem">Ingresar</button>
+    </form>
+
+    <div class="login-demo">
+      <div class="login-demo-titulo">Demo · ingresar como</div>
+      <div class="login-demo-chips" id="demo-chips"></div>
+    </div>
+  </div>
+
+  <div class="login-visual">
+    <img class="fondo" src="img/ppt/image1.jpeg" alt="">
+    <div class="velo"></div>
+    <div class="contenido">
+      <div class="frase">Cada cliente merece una presentación hecha para él<span class="punto">.</span></div>
+      <div class="mini-stats">
+        <div class="mini-stat"><b>1 deck</b> corporativo estándar</div>
+        <div class="mini-stat"><b>∞ propuestas</b> personalizadas</div>
+        <div class="mini-stat"><b>2 formatos</b> desktop y móvil</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/data.js"></script>
+<script>
+  const chips = document.getElementById('demo-chips');
+  CMP.COMERCIALES.concat([CMP.ADMIN]).forEach(c => {
+    const esAdmin = c.rol === 'admin';
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip-usuario';
+    b.innerHTML = `
+      <span class="avatar" style="background:${c.color}">${esAdmin ? '⚙️' : c.ini}</span>
+      <span class="info"><span class="n">${c.nombre}${esAdmin ? ' · <b style="color:var(--rojo)">Admin</b>' : ''}</span><br><span class="c">${c.cargo}${esAdmin ? '' : ' · ' + c.ciudad}</span></span>
+      <span class="flecha">→</span>`;
+    b.addEventListener('click', () => entrar(c.id));
+    chips.appendChild(b);
+  });
+
+  function entrar(id) {
+    CMP.setSesion(id);
+    location.href = id === 'admin' ? 'admin.html' : 'panel.html';
+  }
+
+  document.getElementById('form-login').addEventListener('submit', (e) => {
+    e.preventDefault();
+    entrar(CMP.COMERCIALES[0].id); // demo: cualquier credencial entra como Carolina
+  });
+</script>
+</body>
+</html>

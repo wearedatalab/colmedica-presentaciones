@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colmédica Presenta · Administración del guion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="marca" href="admin.html">
+      <div class="marca-placa"><img src="img/colmedica-logo-white.png" alt="Colmédica"></div>
+      <span class="marca-sufijo">Presenta<b>.</b> <span style="font-weight:600;color:var(--muted);font-size:.85rem">/ Admin</span></span>
+    </a>
+    <div class="usuario">
+      <div class="datos">
+        <div class="n" id="u-nombre">—</div>
+        <div class="c" id="u-cargo">—</div>
+      </div>
+      <span class="avatar" id="u-avatar">⚙️</span>
+      <button class="btn btn-fantasma btn-sm" id="btn-salir">Salir</button>
+    </div>
+  </div>
+</header>
+
+<main class="contenedor">
+
+  <div class="saludo-fila">
+    <div class="saludo">
+      <h1>Guion <em>corporativo</em> ⚙️</h1>
+      <p>Administra las versiones HTML de los slides estándar. Lo que publiques aquí es lo que verán todos los comerciales y sus clientes.</p>
+    </div>
+    <a class="btn btn-azul" href="p.html?m=desktop" target="_blank">▶ Vista previa del guion</a>
+  </div>
+
+  <div class="kpis" id="kpis-admin"></div>
+
+  <div class="seccion-titulo">
+    <h2>Slides del guion</h2>
+  </div>
+  <div class="slides-lista" id="admin-slides"></div>
+
+</main>
+
+<div class="pie-demo">Prototipo conceptual · <b>Colmédica Presenta</b> · Los valores y cifras son de demostración · Vigilado Supersalud</div>
+
+<!-- ============ MODAL EDITAR HTML DEL SLIDE ============ -->
+<div class="modal-fondo" id="modal-slide">
+  <div class="modal" style="width:min(1340px,100%)">
+    <div class="modal-cab">
+      <h3 id="ms-titulo">Editar slide</h3>
+      <div class="tabs-editor">
+        <button class="tab-btn activo" data-tab="deck">🖥️ Versión desktop</button>
+        <button class="tab-btn" data-tab="story">📱 Versión móvil</button>
+      </div>
+      <button class="modal-cerrar" data-cerrar>✕</button>
+    </div>
+    <div class="modal-cuerpo">
+      <div class="editor-html-grid">
+        <div class="editor-html-lado">
+          <div class="editor-html-etq">
+            <span>HTML del slide <b id="ms-tab-nombre">· versión desktop</b></span>
+            <button class="btn btn-fantasma btn-xs" id="ms-original">↺ Volver al original</button>
+          </div>
+          <textarea id="ms-codigo" class="code-editor" spellcheck="false" wrap="off"></textarea>
+          <div class="tokens-etq">Variables disponibles — clic para insertar</div>
+          <div class="token-chips" id="ms-tokens"></div>
+        </div>
+
+        <div class="editor-html-lado">
+          <div class="previa-etiqueta">Vista previa en vivo · datos de ejemplo (Familia Ramírez · Carolina)</div>
+          <iframe id="ms-previa-deck" class="previa-iframe" title="Vista previa desktop"></iframe>
+          <iframe id="ms-previa-story" class="previa-iframe movil" title="Vista previa móvil" style="display:none"></iframe>
+
+          <div style="margin-top:1.2rem">
+            <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.6rem">Historial de versiones</div>
+            <div id="ms-historial" style="display:flex;flex-direction:column;gap:.45rem"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-pie">
+      <button class="btn btn-fantasma" data-cerrar>Cancelar</button>
+      <button class="btn btn-azul" id="ms-guardar">Publicar nueva versión</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

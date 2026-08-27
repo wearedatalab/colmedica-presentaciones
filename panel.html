@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colmédica Presenta · Mis presentaciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="marca" href="panel.html">
+      <div class="marca-placa"><img src="img/colmedica-logo-white.png" alt="Colmédica"></div>
+      <span class="marca-sufijo">Presenta<b>.</b></span>
+    </a>
+    <div class="usuario">
+      <div class="datos">
+        <div class="n" id="u-nombre">—</div>
+        <div class="c" id="u-cargo">—</div>
+      </div>
+      <span class="avatar" id="u-avatar">·</span>
+      <button class="btn btn-fantasma btn-sm" id="btn-salir">Salir</button>
+    </div>
+  </div>
+</header>
+
+<main class="contenedor">
+
+  <div class="saludo-fila">
+    <div class="saludo">
+      <h1>Hola, <em id="s-nombre">—</em> 👋</h1>
+      <p>Personaliza la presentación corporativa 2026 y compártela con tus clientes.</p>
+    </div>
+    <button class="btn btn-rojo" id="btn-nueva">+ Nueva presentación</button>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="seccion-titulo">
+    <h2>Mis presentaciones</h2>
+  </div>
+  <div class="pres-lista" id="pres-lista"></div>
+
+</main>
+
+<div class="pie-demo">Prototipo conceptual · <b>Colmédica Presenta</b> · Los valores y cifras son de demostración · Vigilado Supersalud</div>
+
+<!-- ============ WIZARD NUEVA / EDITAR ============ -->
+<div class="modal-fondo" id="modal-wizard">
+  <div class="modal">
+    <div class="modal-cab">
+      <h3 id="wz-titulo">Nueva presentación</h3>
+      <div class="pasos">
+        <div class="paso-punto" data-paso="1"><span class="num">1</span><span class="txt">Cliente y plan</span></div>
+        <div class="paso-punto" data-paso="2"><span class="num">2</span><span class="txt">Tu slide de resumen</span></div>
+      </div>
+      <button class="modal-cerrar" data-cerrar>✕</button>
+    </div>
+
+    <div class="modal-cuerpo">
+
+      <!-- PASO 1 -->
+      <div class="paso-panel" data-panel="1">
+        <div class="form-grid">
+          <div class="campo">
+            <label for="f-tratamiento">Tratamiento</label>
+            <select id="f-tratamiento">
+              <option>Familia</option><option>Sr.</option><option>Sra.</option><option>Dr.</option><option>Dra.</option><option>Empresa</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="f-cliente">Nombre del cliente *</label>
+            <input id="f-cliente" type="text" maxlength="48" placeholder="Ej: Familia Ramírez">
+          </div>
+          <div class="campo">
+            <label for="f-ciudad">Ciudad</label>
+            <select id="f-ciudad">
+              <option>Bogotá</option><option>Chía</option><option>Medellín</option><option>Cali</option>
+              <option>Barranquilla</option><option>Cartagena</option><option>Bucaramanga</option><option>Pereira</option><option>Otra</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="f-vigencia">La propuesta vence el</label>
+            <input id="f-vigencia" type="date">
+          </div>
+          <div class="ancho">
+            <label style="display:block;font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Plan recomendado *</label>
+            <div class="planes-grid" id="f-planes"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: slide de libre uso del comercial -->
+      <div class="paso-panel" data-panel="2">
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:1.2rem">
+          Este es <b style="color:var(--rojo)">tu slide de libre uso</b>: el resumen de lo que cotizaste con el cliente.
+          El resto del guion corporativo (slides estándar) lo administra el equipo de mercadeo y se incluye automáticamente.
+        </p>
+        <div class="editor-grid">
+          <div>
+            <label style="display:block;font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Beneficiarios y valores acordados</label>
+            <div class="bens-cabecera"><span>Nombre</span><span>Edad</span><span>Valor mensual</span><span></span></div>
+            <div class="bens-tabla" id="f-bens"></div>
+            <button class="btn btn-linea btn-sm" id="btn-add-ben" type="button">+ Agregar beneficiario</button>
+
+            <div class="form-grid" style="margin-top:1.4rem">
+              <div class="campo">
+                <label for="f-desc">% descuento por pago anual</label>
+                <input id="f-desc" type="number" min="0" max="30" value="8">
+              </div>
+            </div>
+
+            <div style="margin-top:.6rem">
+              <label style="display:block;font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">Notas del asesor (aparecen en el slide)</label>
+              <div class="editor-toolbar">
+                <button class="tb-btn" type="button" data-cmd="bold"><b>B</b></button>
+                <button class="tb-btn" type="button" data-cmd="italic"><i>I</i></button>
+                <button class="tb-btn" type="button" data-cmd="insertUnorderedList">•≡</button>
+              </div>
+              <div class="notas-editor" id="f-notas" contenteditable="true" data-placeholder="Ej: incluye continuidad de antigüedad…"></div>
+            </div>
+          </div>
+
+          <div class="previa-marco">
+            <div class="previa-etiqueta">Vista previa en vivo · así verá el cliente este slide</div>
+            <div class="previa-slide" id="previa-slide"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-pie">
+      <button class="btn btn-fantasma" id="wz-atras">← Atrás</button>
+      <div style="display:flex;gap:.7rem">
+        <button class="btn btn-linea" id="wz-borrador">Guardar borrador</button>
+        <button class="btn btn-azul" id="wz-sig">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL PUBLICAR / COMPARTIR ============ -->
+<div class="modal-fondo" id="modal-publicar">
+  <div class="modal" style="width:min(760px,100%)">
+    <div class="modal-cab">
+      <h3>Publicar presentación</h3>
+      <button class="modal-cerrar" data-cerrar>✕</button>
+    </div>
+    <div class="modal-cuerpo">
+
+      <div class="publicar-centro" id="fase-ia">
+        <div class="titulo-ia">Optimizando tu presentación con IA ✨</div>
+        <p class="sub-ia">Estamos preparando cada slide en dos formatos: <b>desktop (16:9)</b> y una versión <b>móvil (9:16)</b> con imágenes reencuadradas por <b>fal.ai</b>, para que se vea perfecta en cualquier pantalla.</p>
+        <div class="ia-lista" id="ia-lista"></div>
+        <div class="ia-pie">Motor de imágenes: <b>FLUX vía fal.ai</b> · Formatos generados una sola vez por presentación</div>
+      </div>
+
+      <div class="compartir-panel" id="fase-compartir">
+        <div class="publicar-centro">
+          <div class="titulo-ia">¡Lista para compartir! 🎉</div>
+          <p class="sub-ia">Tu cliente abrirá este link desde cualquier dispositivo: en computador verá el deck panorámico y en celular la versión historias optimizada.</p>
+        </div>
+        <div class="link-caja">
+          <input id="link-final" readonly value="">
+          <button class="btn btn-azul btn-sm" id="btn-copiar">Copiar</button>
+        </div>
+        <div class="compartir-botones">
+          <a class="btn btn-vital btn-sm" id="btn-ver-desktop" target="_blank">🖥️ Ver como desktop</a>
+          <a class="btn btn-vital btn-sm" id="btn-ver-movil" target="_blank">📱 Ver como móvil</a>
+          <a class="btn btn-rojo btn-sm" id="btn-whatsapp" target="_blank">Enviar por WhatsApp</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
