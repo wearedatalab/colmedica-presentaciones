@@ -10,8 +10,9 @@
   const $$ = (s, c) => Array.from((c || document).querySelectorAll(s));
 
   /* ---------- Cargar payload del link ---------- */
-  const hash = location.hash.match(/d=([^&]+)/);
-  let P = hash ? CMP.b64dec(hash[1]) : null;
+  const hz = location.hash.match(/z=([^&]+)/);   // formato comprimido (actual)
+  const hd = location.hash.match(/d=([^&]+)/);   // formato base64 (links antiguos)
+  let P = hz ? CMP.zdec(hz[1]) : hd ? CMP.b64dec(hd[1]) : null;
   if (!P) {
     // fallback demo: primera presentación semilla
     P = CMP.buildPayload(CMP.SEED[0]);

@@ -40,9 +40,22 @@
   };
 
   const linkDe = (pres) => {
-    const payload = CMP.b64enc(CMP.buildPayload(pres));
+    const payload = CMP.zenc(CMP.buildPayload(pres));
     const base = location.href.replace(/panel\.html.*$/, 'p.html');
-    return `${base}#d=${payload}`;
+    return `${base}#z=${payload}`;
+  };
+
+  /* el mejor link disponible: el corto si ya existe; si no, el largo,
+     y se acorta en segundo plano para la próxima vez */
+  const mejorLink = (pres) => {
+    if (pres.shortUrl) return pres.shortUrl;
+    const largo = linkDe(pres);
+    CMP.acortarLink(largo).then(corto => {
+      if (!corto) return;
+      pres.shortUrl = corto;
+      CMP.savePresentaciones(lista);
+    });
+    return largo;
   };
 
   /* ---------- KPIs ---------- */
@@ -103,12 +116,12 @@
       };
       $('[data-ver]', el).addEventListener('click', () => window.open(linkDe(p), '_blank'));
       $('[data-link]', el).addEventListener('click', async () => {
-        await copiar(linkDe(p));
+        await copiar(mejorLink(p));
         marcarEnviada();
-        toast('Link copiado al portapapeles');
+        toast(p.shortUrl ? 'Link corto copiado' : 'Link copiado al portapapeles');
       });
       $('[data-wa]', el).addEventListener('click', () => {
-        const msg = `Hola ${p.cliente}, soy ${yo.nombre} de Colmédica. Te comparto la presentación que preparé especialmente para ti: ${linkDe(p)}`;
+        const msg = `Hola ${p.cliente}, soy ${yo.nombre} de Colmédica. Te comparto la presentación que preparé especialmente para ti: ${mejorLink(p)}`;
         window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
         marcarEnviada();
       });
@@ -349,6 +362,7 @@
   }
 
   function guardar() {
+    delete editando.shortUrl; // el contenido cambió: el link corto anterior queda obsoleto
     const idx = lista.findIndex(x => x.id === editando.id);
     if (idx >= 0) lista[idx] = editando; else lista.push(editando);
     CMP.savePresentaciones(lista);
@@ -411,8 +425,28 @@
     $('#link-final').value = link;
     $('#btn-ver-desktop').href = link.replace('#', '?m=desktop#');
     $('#btn-ver-movil').href = link.replace('#', '?m=movil#');
-    const msg = `Hola ${editando.cliente}, soy ${yo.nombre} de Colmédica. Preparé esta presentación especialmente para ti: ${link}`;
-    $('#btn-whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    const armarWa = (url) => {
+      const msg = `Hola ${editando.cliente}, soy ${yo.nombre} de Colmédica. Preparé esta presentación especialmente para ti: ${url}`;
+      $('#btn-whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    };
+    armarWa(link);
+
+    /* acortar en segundo plano y reemplazar cuando esté listo */
+    CMP.acortarLink(link).then(corto => {
+      if (!corto) return;
+      editando.shortUrl = corto;
+      CMP.savePresentaciones(lista);
+      $('#link-final').value = corto;
+      armarWa(corto);
+      const caja = $('#link-final').closest('.link-caja');
+      if (caja && !$('.etq-corto', caja)) {
+        const etq = document.createElement('span');
+        etq.className = 'etq-corto';
+        etq.textContent = '✂️ corto';
+        caja.insertBefore(etq, $('#link-final'));
+      }
+      toast('Link corto generado ✂️');
+    });
   }
 
   $('#btn-copiar').addEventListener('click', async () => {

@@ -432,6 +432,35 @@ const CMP = (() => {
     } catch (e) { return null; }
   };
 
+  /* payload comprimido (LZ-String): URLs a la mitad del tamaño del base64 */
+  const zenc = (obj) => LZString.compressToEncodedURIComponent(JSON.stringify(obj));
+  const zdec = (str) => {
+    try { return JSON.parse(LZString.decompressFromEncodedURIComponent(str)); }
+    catch (e) { return null; }
+  };
+
+  /* Acortador de links (demo): TinyURL con respaldo en spoo.me.
+     Devuelve la URL corta o null si ningún servicio responde. */
+  const acortarLink = async (url) => {
+    try {
+      const r = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(url),
+        { signal: AbortSignal.timeout(6000) });
+      const t = (await r.text()).trim();
+      if (r.ok && /^https:\/\/tinyurl\.com\/\S+$/.test(t)) return t;
+    } catch (e) { /* siguiente servicio */ }
+    try {
+      const r = await fetch('https://spoo.me/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+        body: 'url=' + encodeURIComponent(url),
+        signal: AbortSignal.timeout(6000),
+      });
+      const j = await r.json();
+      if (j && j.short_url) return j.short_url.replace(/^http:/, 'https:');
+    } catch (e) { /* sin acortador */ }
+    return null;
+  };
+
   /* ---------- Persistencia (demo: localStorage con respaldo en memoria) ---------- */
   const LS_PRES = 'cmp_presentaciones_v1';
   const LS_SES = 'cmp_sesion_v1';
@@ -516,7 +545,7 @@ const CMP = (() => {
 
   return {
     PLANES, SLIDES, COMERCIALES, ADMIN, SEED, CIFRAS, CLINICAS, SLIDE_HTML, TOKENS,
-    fmtCOP, fmtFecha, b64enc, b64dec,
+    fmtCOP, fmtFecha, b64enc, b64dec, zenc, zdec, acortarLink,
     getPresentaciones, savePresentaciones, getSesion, setSesion, cerrarSesion,
     planById, comercialById, totalBens, buildPayload,
     getGuion, saveGuion, htmlDe, sanearHtml, renderHtml, guionActual,
