@@ -68,8 +68,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   font-size:.85cqi;font-weight:700;letter-spacing:.28em;opacity:.5;text-transform:uppercase;
 }
 
-/* contenido genérico */
-.lienzo{position:absolute;inset:0;padding:6cqi 7cqi;display:flex;flex-direction:column;z-index:5}
+/* contenido genérico — el padding inferior reserva la franja de
+   navegación (puntos) y la firma para que nada se superponga */
+.lienzo{position:absolute;inset:0;padding:5.4cqi 7cqi 8cqi;display:flex;flex-direction:column;z-index:5}
 .pill{
   display:inline-flex;align-self:flex-start;background:var(--rojo);color:#fff;
   font-weight:800;font-size:1.35cqi;padding:.5cqi 1.8cqi;border-radius:999px;letter-spacing:.04em;
@@ -139,6 +140,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
 /* ---------- Plan recomendado ---------- */
 .s-plan .split{grid-template-columns:1.15fr .85fr}
+.s-plan .plan-card-hero{margin-top:1.6cqi;padding:2.2cqi 2.4cqi}
+.s-plan .pnom{font-size:3.1cqi}
+.s-plan .pclaim{font-size:1.4cqi;margin-bottom:1.2cqi}
+.s-plan .checks{gap:.8cqi}
+.s-plan .check{font-size:1.3cqi}
+.s-plan .check::before{width:1.9cqi;height:1.9cqi;font-size:1cqi}
 .badge-reco{
   display:inline-flex;align-items:center;gap:.7cqi;background:linear-gradient(90deg,var(--rojo),#ff4d57);
   font-size:1.25cqi;font-weight:800;padding:.55cqi 1.6cqi;border-radius:999px;letter-spacing:.05em;
@@ -269,7 +276,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .prop-caja .ptxt ul{padding-left:1.8cqi}
 .prop-caja.vigencia{border-color:rgba(227,6,19,.45);background:rgba(227,6,19,.10)}
 .prop-caja.vigencia .pfecha{font-size:2cqi;font-weight:800}
-.letra-mini{position:absolute;left:7cqi;bottom:1.2cqi;max-width:56cqi;font-size:.95cqi;opacity:.55;line-height:1.5}
+.letra-mini{position:absolute;left:7cqi;bottom:2.4cqi;max-width:34cqi;font-size:.85cqi;opacity:.55;line-height:1.45}
 .prop-bens.compacto{gap:.55cqi}
 .prop-bens.compacto .prop-ben{padding:.65cqi 1.6cqi;font-size:1.25cqi;border-radius:1cqi}
 .prop-bens.compacto .prop-ben .edad{font-size:.95cqi}

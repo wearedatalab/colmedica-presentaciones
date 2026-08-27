@@ -177,7 +177,7 @@
                 </div>
               </div>
             </div>
-            <div class="foto-panel anim" style="aspect-ratio:4/4.6"><img src="img/flux/plan-v.jpg" alt=""></div>
+            <div class="foto-panel anim" style="aspect-ratio:auto;width:min(100%,31cqi);height:37cqi;margin:0 auto"><img src="img/flux/plan-v.jpg" alt=""></div>
           </div>
         </div>`,
       story: {
