@@ -292,18 +292,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .cta-tel{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff}
 .s-cierre .asesor-chip{align-self:center;margin-top:2.8cqi}
 
-/* ---------- Controles deck ---------- */
-.deck-controles{position:absolute;inset:0;z-index:20;pointer-events:none}
-.flecha{
-  position:absolute;top:50%;transform:translateY(-50%);pointer-events:auto;
-  width:3.4cqi;height:3.4cqi;min-width:44px;min-height:44px;border-radius:50%;
-  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);
-  display:grid;place-items:center;font-size:1.3cqi;transition:background .2s ease, transform .2s ease;
-}
-.flecha:hover{background:rgba(255,255,255,.22);transform:translateY(-50%) scale(1.08)}
-.flecha.izq{left:1.6cqi}
-.flecha.der{right:1.6cqi}
-.flecha[disabled]{opacity:.25;pointer-events:none}
+/* ---------- Controles deck: clic para avanzar (sin flechas en pantalla) ---------- */
+.deck-marco{cursor:pointer}
+.deck-marco a,.deck-marco button,.deck-marco video{cursor:pointer}
 
 .deck-pie{
   position:absolute;left:0;right:0;bottom:0;z-index:21;display:flex;align-items:center;
@@ -501,7 +492,7 @@ body.modo-pdf .video-marco::after{
 @media print{
   @page{size:338mm 190mm;margin:0}
   html,body{height:auto;overflow:visible;background:#fff}
-  .modo-toggle,.pdf-btn,.historias,.deck-controles,.deck-pie,.contador-slides,.deck-progreso{display:none !important}
+  .modo-toggle,.pdf-btn,.historias,.deck-pie,.contador-slides,.deck-progreso,.carga,.tour,.btn-ayuda{display:none !important}
   .deck-escenario{position:static;display:block}
   .deck-marco{width:100%;max-height:none;aspect-ratio:auto}
   .slide{
@@ -528,3 +519,106 @@ body.modo-pdf .video-marco::after{
 }
 .link-roto h1{font-size:1.6rem;font-weight:800}
 .link-roto p{opacity:.75;max-width:44ch;line-height:1.5}
+
+/* ============================================================
+   PANTALLA DE BIENVENIDA — "estamos creando tu propuesta"
+   ============================================================ */
+.carga{
+  position:fixed;inset:0;z-index:200;display:grid;place-items:center;text-align:center;
+  background:
+    radial-gradient(120vh 90vh at 78% 8%, rgba(0,159,227,.28), transparent 60%),
+    radial-gradient(90vh 70vh at 12% 96%, rgba(227,6,19,.14), transparent 55%),
+    linear-gradient(150deg,#0a4b8f 0%,var(--azul-tinta) 68%);
+  transition:opacity .7s ease, visibility .7s ease;
+  padding:1.5rem;
+}
+.carga.oculto{opacity:0;visibility:hidden;pointer-events:none}
+.carga-inner{max-width:520px;animation:carga-entra .8s ease}
+@keyframes carga-entra{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.carga-logo{height:34px;width:auto;margin:0 auto 2.4rem;opacity:.95}
+
+.carga-latido{position:relative;width:min(320px,80vw);height:80px;margin:0 auto 1.6rem}
+.carga-ecg{position:absolute;inset:0;width:100%;height:60px;top:10px}
+.ecg-linea{
+  stroke:var(--azul-vital);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 6px rgba(0,159,227,.9));
+  stroke-dasharray:60 420;stroke-dashoffset:480;
+  animation:ecg 2.4s linear infinite;
+}
+@keyframes ecg{to{stroke-dashoffset:0}}
+.carga-corazon{
+  position:absolute;left:50%;top:50%;width:44px;height:40px;transform:translate(-50%,-58%);
+  fill:var(--rojo);filter:drop-shadow(0 6px 18px rgba(227,6,19,.55));
+  animation:late-corazon 1.2s ease-in-out infinite;transform-origin:center;
+}
+@keyframes late-corazon{
+  0%,100%{transform:translate(-50%,-58%) scale(1)}
+  14%{transform:translate(-50%,-58%) scale(1.18)}
+  28%{transform:translate(-50%,-58%) scale(1)}
+  42%{transform:translate(-50%,-58%) scale(1.12)}
+  56%{transform:translate(-50%,-58%) scale(1)}
+}
+.carga-titulo{font-size:clamp(1.6rem,4.4vw,2.3rem);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.carga-sub{font-size:clamp(.95rem,2.6vw,1.15rem);font-weight:600;opacity:.92;margin-top:.6rem}
+.carga-puntos span{animation:punto-late 1.4s infinite;display:inline-block}
+.carga-puntos span:nth-child(2){animation-delay:.2s}
+.carga-puntos span:nth-child(3){animation-delay:.4s}
+@keyframes punto-late{0%,60%,100%{opacity:.25}30%{opacity:1}}
+.carga-detalle{font-size:.85rem;font-weight:600;color:rgba(255,255,255,.6);margin-top:1.5rem;min-height:1.3em;transition:opacity .3s ease}
+.carga-detalle.cambia{opacity:0}
+.carga-barra{
+  width:min(280px,70vw);height:4px;border-radius:99px;background:rgba(255,255,255,.15);
+  margin:.9rem auto 0;overflow:hidden;
+}
+.carga-barra span{
+  display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,var(--azul-vital),var(--rojo));
+  animation:carga-avanza 2.9s cubic-bezier(.25,.6,.35,1) forwards;
+}
+@keyframes carga-avanza{0%{width:0}70%{width:78%}100%{width:100%}}
+
+/* ============================================================
+   WALKTHROUGH — cómo navegar la presentación
+   ============================================================ */
+.tour{
+  position:fixed;inset:0;z-index:160;display:grid;place-items:center;padding:1.4rem;
+  background:rgba(2,28,56,.82);backdrop-filter:blur(10px);
+  animation:carga-entra .3s ease;
+}
+.tour-card{
+  width:min(430px,100%);background:linear-gradient(165deg,#0d3f77,#062a52);
+  border:1px solid rgba(255,255,255,.18);border-radius:24px;
+  padding:2.2rem 2rem 1.6rem;text-align:center;
+  box-shadow:0 40px 90px rgba(0,0,0,.5);
+}
+.tour-icono{
+  font-size:3.4rem;line-height:1;display:inline-block;margin-bottom:1.2rem;
+  animation:tour-flota 1.6s ease-in-out infinite;
+}
+@keyframes tour-flota{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.06)}}
+.tour-titulo{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;margin-bottom:.55rem}
+.tour-texto{font-size:.95rem;line-height:1.55;opacity:.88}
+.tour-texto b{color:#8fd8ff}
+.tour-pasos{display:flex;gap:.45rem;justify-content:center;margin:1.5rem 0 1.1rem}
+.tour-pasos span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .25s ease}
+.tour-pasos span.activo{background:#fff;transform:scale(1.3)}
+.tour-botones{display:flex;gap:.7rem;justify-content:center}
+.tour-btn{
+  padding:.8rem 1.9rem;border-radius:999px;font-weight:800;font-size:.92rem;
+  transition:transform .15s ease;
+}
+.tour-btn:active{transform:scale(.96)}
+.tour-btn.principal{background:var(--rojo);color:#fff;box-shadow:0 10px 26px rgba(227,6,19,.4)}
+.tour-btn.principal:hover{transform:translateY(-2px)}
+.tour-btn.saltar{color:rgba(255,255,255,.6)}
+.tour-btn.saltar:hover{color:#fff}
+
+/* botón flotante de ayuda */
+.btn-ayuda{
+  position:fixed;left:1rem;top:3.6rem;z-index:90;width:34px;height:34px;border-radius:50%;
+  background:rgba(2,28,56,.72);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(12px);
+  color:#fff;font-weight:800;font-size:.95rem;display:grid;place-items:center;
+  transition:background .2s ease, transform .2s ease;
+}
+.btn-ayuda:hover{background:rgba(0,88,162,.85);transform:scale(1.08)}
+body[data-modo="movil"] .btn-ayuda{left:auto;right:1rem;top:calc(5.6rem + env(safe-area-inset-top))}

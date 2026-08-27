@@ -303,12 +303,16 @@
     $$('.punto-nav', puntos).forEach((p, i) => p.classList.toggle('activo', i === idx));
     $('#contador').textContent = `${String(idx + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
     $('#prog-relleno').style.width = ((idx + 1) / slides.length * 100) + '%';
-    $('#f-izq').disabled = idx === 0;
-    $('#f-der').disabled = idx === slides.length - 1;
   }
 
-  $('#f-izq').addEventListener('click', () => irA(idx - 1));
-  $('#f-der').addEventListener('click', () => irA(idx + 1));
+  /* navegación por clic: clic avanza; el borde izquierdo (18%) retrocede.
+     Los elementos interactivos (links, video, puntos) no navegan. */
+  marco.addEventListener('click', (e) => {
+    if (document.body.dataset.modo !== 'desktop') return;
+    if (e.target.closest('a,button,video,.video-marco,.puntos,input')) return;
+    const r = marco.getBoundingClientRect();
+    irA((e.clientX - r.left) < r.width * 0.18 ? idx - 1 : idx + 1);
+  });
 
   document.addEventListener('keydown', (e) => {
     if (document.body.dataset.modo !== 'desktop') return;
@@ -546,6 +550,100 @@
   }
 
   $('#btn-pdf').addEventListener('click', descargarPdf);
+
+  /* ============================================================
+     BIENVENIDA — "estamos creando tu propuesta comercial"
+     ============================================================ */
+  const carga = $('#carga');
+  const saludo = /^(Familia|Empresa)$/.test(P.tr) ? 'Bienvenidos'
+    : /^(Sra\.|Dra\.)$/.test(P.tr) ? 'Bienvenida' : 'Bienvenido';
+  $('.carga-titulo', carga).firstChild.textContent = '¡' + saludo;
+  $('#carga-nombre').textContent = P.c ? ', ' + P.c : '';
+  const MENSAJES_CARGA = [
+    'Personalizando tu plan ' + plan.nombre,
+    'Ajustando los valores acordados',
+    'Dando los últimos toques',
+  ];
+  let msgIdx = 0;
+  const detalle = $('#carga-detalle');
+  const rotarMsg = setInterval(() => {
+    msgIdx++;
+    if (msgIdx >= MENSAJES_CARGA.length) return;
+    detalle.classList.add('cambia');
+    setTimeout(() => { detalle.textContent = MENSAJES_CARGA[msgIdx]; detalle.classList.remove('cambia'); }, 300);
+  }, 1000);
+  detalle.textContent = MENSAJES_CARGA[0];
+
+  setTimeout(() => {
+    clearInterval(rotarMsg);
+    carga.classList.add('oculto');
+    setTimeout(() => carga.remove(), 800);
+    /* primera visita: mostrar cómo navegar */
+    let visto = null;
+    try { visto = localStorage.getItem('cmp_tour_v1'); } catch (e) { /* sin storage */ }
+    if (!visto) mostrarTour();
+  }, 3100);
+
+  /* ============================================================
+     WALKTHROUGH — cómo navegar la presentación
+     ============================================================ */
+  function pasosTour() {
+    if (document.body.dataset.modo === 'movil') {
+      return [
+        { icono: '👆', titulo: 'Navega con un toque', texto: 'Toca el <b>lado derecho</b> de la pantalla para avanzar y el <b>lado izquierdo</b> para volver. También puedes deslizar.' },
+        { icono: '📊', titulo: 'Tu avance', texto: 'Las barras de arriba te muestran en qué parte de la presentación vas.' },
+        { icono: '💬', titulo: 'Tu asesor, siempre abajo', texto: 'En la parte inferior está el botón para <b>escribirle por WhatsApp</b> a tu asesor en cualquier momento.' },
+      ];
+    }
+    return [
+      { icono: '🖱️', titulo: 'Navega con un clic', texto: 'Haz <b>clic en la pantalla</b> para avanzar al siguiente slide, o usa las <b>flechas ← → del teclado</b>. El borde izquierdo te devuelve.' },
+      { icono: '⚪', titulo: 'Salta a donde quieras', texto: 'Los <b>puntos de abajo</b> muestran tu avance: haz clic en cualquiera para ir directo a ese slide.' },
+      { icono: '📄', titulo: 'Llévatela contigo', texto: 'Arriba a la izquierda puedes <b>descargar la propuesta en PDF</b>, y arriba a la derecha verla en <b>versión móvil</b>.' },
+      { icono: '💬', titulo: 'Habla con tu asesor', texto: 'En el último slide encontrarás el <b>WhatsApp de tu asesor</b> para resolver cualquier duda al instante.' },
+    ];
+  }
+
+  function mostrarTour() {
+    if ($('.tour')) return;
+    const pasos = pasosTour();
+    let pi = 0;
+    const t = document.createElement('div');
+    t.className = 'tour';
+    t.innerHTML = `
+      <div class="tour-card">
+        <span class="tour-icono"></span>
+        <div class="tour-titulo"></div>
+        <p class="tour-texto"></p>
+        <div class="tour-pasos">${pasos.map(() => '<span></span>').join('')}</div>
+        <div class="tour-botones">
+          <button class="tour-btn saltar" data-saltar>Saltar</button>
+          <button class="tour-btn principal" data-sig>Siguiente</button>
+        </div>
+      </div>`;
+    document.body.appendChild(t);
+
+    const pintar = () => {
+      const p = pasos[pi];
+      $('.tour-icono', t).textContent = p.icono;
+      $('.tour-titulo', t).textContent = p.titulo;
+      $('.tour-texto', t).innerHTML = p.texto;
+      $$('.tour-pasos span', t).forEach((s, i) => s.classList.toggle('activo', i === pi));
+      $('[data-sig]', t).textContent = pi === pasos.length - 1 ? '¡Empezar! 🚀' : 'Siguiente';
+      $('[data-saltar]', t).style.visibility = pi === pasos.length - 1 ? 'hidden' : 'visible';
+    };
+    const cerrar = () => {
+      try { localStorage.setItem('cmp_tour_v1', '1'); } catch (e) { /* sin storage */ }
+      t.remove();
+    };
+    $('[data-sig]', t).addEventListener('click', () => {
+      if (pi === pasos.length - 1) { cerrar(); return; }
+      pi++; pintar();
+    });
+    $('[data-saltar]', t).addEventListener('click', cerrar);
+    pintar();
+  }
+
+  $('#btn-ayuda').addEventListener('click', mostrarTour);
 
   /* ---------- Inicio ---------- */
   irA(0);

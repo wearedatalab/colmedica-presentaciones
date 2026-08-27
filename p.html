@@ -12,14 +12,29 @@
 </head>
 <body data-modo="desktop">
 
+<!-- Pantalla de bienvenida / creando propuesta -->
+<div class="carga" id="carga">
+  <div class="carga-inner">
+    <img class="carga-logo" src="img/colmedica-logo-white.png" alt="Colmédica">
+    <div class="carga-latido">
+      <svg class="carga-ecg" viewBox="0 0 320 60" fill="none" aria-hidden="true">
+        <path class="ecg-linea" d="M0 30 H98 L110 30 118 10 128 50 136 22 142 30 H222 L232 30 240 16 248 44 254 30 H320"/>
+      </svg>
+      <svg class="carga-corazon" viewBox="0 0 32 29" aria-hidden="true">
+        <path d="M23.6 0c-3.1 0-5.9 1.6-7.6 4.1C14.3 1.6 11.5 0 8.4 0 3.8 0 0 3.8 0 8.4c0 9.3 16 20.6 16 20.6s16-11.3 16-20.6C32 3.8 28.2 0 23.6 0z"/>
+      </svg>
+    </div>
+    <h1 class="carga-titulo">¡Bienvenido<span id="carga-nombre"></span>!</h1>
+    <p class="carga-sub">Estamos creando tu propuesta comercial<span class="carga-puntos"><span>.</span><span>.</span><span>.</span></span></p>
+    <p class="carga-detalle" id="carga-detalle">Personalizando tu plan</p>
+    <div class="carga-barra"><span></span></div>
+  </div>
+</div>
+
 <!-- Deck desktop -->
 <div class="deck-escenario">
   <div class="deck-marco" id="deck-marco">
     <div class="deck-progreso"><span class="relleno" id="prog-relleno"></span></div>
-    <div class="deck-controles">
-      <button class="flecha izq" id="f-izq" aria-label="Slide anterior">◀</button>
-      <button class="flecha der" id="f-der" aria-label="Slide siguiente">▶</button>
-    </div>
     <div class="deck-pie">
       <div class="puntos" id="puntos"></div>
     </div>
@@ -30,9 +45,10 @@
 <!-- Historias móvil -->
 <div class="historias" id="historias"></div>
 
-<!-- Toggle demo desktop/móvil + exportar PDF -->
+<!-- Toggle demo desktop/móvil + exportar PDF + ayuda -->
 <button class="modo-toggle" id="modo-toggle">📱 Ver versión móvil</button>
 <button class="modo-toggle pdf-btn" id="btn-pdf" title="Descargar la presentación como archivo PDF">📄 Descargar PDF</button>
+<button class="btn-ayuda" id="btn-ayuda" title="¿Cómo navegar la presentación?" aria-label="Cómo navegar">?</button>
 
 <script src="js/data.js"></script>
 <script src="js/deck.js"></script>
