@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colmédica Presenta · Editor de slide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="ed-page" data-modo-editor="visual">
+
+  <!-- ===== BARRA SUPERIOR ===== -->
+  <header class="ed-top">
+    <a class="ed-volver" href="admin.html" title="Volver">←</a>
+    <div class="ed-titulo">
+      <span class="ed-ico" id="ed-icono">🖥️</span>
+      <span id="ed-nombre">Editar slide</span>
+    </div>
+
+    <div class="tabs-editor">
+      <button class="tab-btn activo" data-tab="deck">🖥️ Desktop</button>
+      <button class="tab-btn" data-tab="story">📱 Móvil</button>
+    </div>
+    <div class="tabs-editor">
+      <button class="tab-btn modo-btn activo" data-modo="visual">🎨 Visual</button>
+      <button class="tab-btn modo-btn" data-modo="codigo">&lt;/&gt; Código</button>
+    </div>
+
+    <div class="ed-top-der">
+      <button class="btn btn-linea btn-sm" id="ev-deshacer" disabled>↩️ Deshacer</button>
+      <a class="btn btn-fantasma btn-sm" href="admin.html">Cancelar</a>
+      <button class="btn btn-azul btn-sm" id="ms-guardar">Publicar nueva versión</button>
+    </div>
+  </header>
+
+  <div class="ed-body">
+
+    <!-- ===== MODO VISUAL ===== -->
+    <div class="ed-visual" id="ed-visual">
+
+      <!-- Panel izquierdo: Insertar -->
+      <aside class="ed-left">
+        <div class="ed-sec-tit">Insertar</div>
+        <div class="ed-grupo">
+          <div class="ed-grupo-tit">Texto</div>
+          <button class="ed-tool" data-el="titulo"><span>🅣</span> Título grande</button>
+          <button class="ed-tool" data-el="subtitulo"><span>🅢</span> Subtítulo</button>
+          <button class="ed-tool" data-el="parrafo"><span>¶</span> Párrafo</button>
+        </div>
+        <div class="ed-grupo">
+          <div class="ed-grupo-tit">Elementos</div>
+          <button class="ed-tool" data-el="pill"><span>🔴</span> Pastilla</button>
+          <button class="ed-tool" data-el="tarjeta"><span>▢</span> Tarjeta</button>
+          <button class="ed-tool" data-el="cifra"><span>#️⃣</span> Cifra destacada</button>
+          <button class="ed-tool" data-el="icono"><span>😊</span> Ícono / emoji</button>
+        </div>
+        <div class="ed-grupo">
+          <div class="ed-grupo-tit">Medios y datos</div>
+          <button class="ed-tool" data-el="imagen"><span>🖼️</span> Imagen</button>
+          <button class="ed-tool" data-el="variable"><span>{ }</span> Variable de cliente</button>
+        </div>
+        <div class="ed-grupo">
+          <div class="ed-grupo-tit">Slide</div>
+          <button class="ed-tool" id="ev-fondo"><span>🌅</span> Cambiar fondo</button>
+          <button class="ed-tool" id="ev-blanco"><span>▢</span> Slide en blanco</button>
+          <button class="ed-tool" id="ms-original"><span>↺</span> Volver al original</button>
+        </div>
+      </aside>
+
+      <!-- Centro: lienzo -->
+      <main class="ed-center">
+        <div class="ed-lienzo">
+          <iframe id="ev-canvas" class="ev-canvas deck" title="Editor visual del slide"></iframe>
+        </div>
+        <div class="ed-hint">Haz <b>clic</b> para seleccionar un elemento · <b>doble clic</b> para editar su texto · <b>arrástralo</b> para moverlo · usa la <b>esquina</b> para cambiar su tamaño</div>
+      </main>
+
+      <!-- Panel derecho: propiedades -->
+      <aside class="ed-right" id="ed-panel">
+        <!-- se llena dinámicamente -->
+      </aside>
+
+    </div>
+
+    <!-- ===== MODO CÓDIGO ===== -->
+    <div class="ed-codigo" id="ed-codigo" style="display:none">
+      <div class="ed-cod-lado">
+        <div class="editor-html-etq"><span>HTML del slide <b id="ms-tab-nombre">· versión desktop</b></span></div>
+        <textarea id="ms-codigo" class="code-editor" spellcheck="false" wrap="off"></textarea>
+        <div class="tokens-etq">Variables disponibles — clic para insertar</div>
+        <div class="token-chips" id="ms-tokens"></div>
+      </div>
+      <div class="ed-cod-lado">
+        <div class="previa-etiqueta">Vista previa en vivo · datos de ejemplo</div>
+        <iframe id="ms-previa-deck" class="previa-iframe" title="Vista previa desktop"></iframe>
+        <iframe id="ms-previa-story" class="previa-iframe movil" title="Vista previa móvil" style="display:none"></iframe>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- galería -->
+<div class="modal-fondo" id="modal-galeria">
+  <div class="modal" style="width:min(860px,100%)">
+    <div class="modal-cab">
+      <h3>Elige una imagen</h3>
+      <button class="modal-cerrar" data-cerrar-galeria>✕</button>
+    </div>
+    <div class="modal-cuerpo">
+      <div class="galeria-grid" id="galeria-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- menú de variables -->
+<div class="ev-menu" id="ev-var-menu"></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/vendor/lz-string.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/editor.js"></script>
+</body>
+</html>

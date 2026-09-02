@@ -421,7 +421,97 @@ a{color:inherit;text-decoration:none}
   aspect-ratio:9/17;width:min(300px,100%);margin:0 auto;
 }
 
-/* ---------- Editor visual (tipo Canva) ---------- */
+/* ============================================================
+   EDITOR DE SLIDE — página dedicada tipo PowerPoint
+   ============================================================ */
+.ed-page{display:flex;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg)}
+
+.ed-top{
+  display:flex;align-items:center;gap:1rem;padding:.6rem 1rem;background:#fff;
+  border-bottom:1px solid var(--line);flex:none;box-shadow:0 1px 0 rgba(2,28,56,.03);
+}
+.ed-volver{
+  width:34px;height:34px;border-radius:10px;background:var(--soft);color:var(--azul);
+  display:grid;place-items:center;font-size:1.1rem;font-weight:800;flex:none;
+}
+.ed-volver:hover{background:var(--line)}
+.ed-titulo{display:flex;align-items:center;gap:.5rem;font-weight:800;font-size:1.02rem;letter-spacing:-.01em}
+.ed-titulo .ed-ico{font-size:1.15rem}
+.ed-top-der{margin-left:auto;display:flex;align-items:center;gap:.6rem}
+@media (max-width:920px){.ed-titulo{display:none}}
+
+.ed-body{flex:1;min-height:0;display:flex;overflow:hidden}
+.ed-visual{flex:1;display:grid;grid-template-columns:222px minmax(0,1fr) 292px;min-height:0}
+@media (max-width:1100px){.ed-visual{grid-template-columns:190px minmax(0,1fr) 250px}}
+
+/* panel izquierdo: insertar */
+.ed-left{background:#fff;border-right:1px solid var(--line);overflow-y:auto;padding:1rem .85rem 2rem}
+.ed-sec-tit{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:.2rem .3rem .7rem}
+.ed-grupo{margin-bottom:1.1rem}
+.ed-grupo-tit{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#9aa8bd;margin:0 .3rem .4rem}
+.ed-tool{
+  display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;
+  padding:.6rem .7rem;border-radius:11px;font-size:.9rem;font-weight:700;color:var(--ink);
+  border:1.5px solid transparent;transition:all .12s ease;margin-bottom:.25rem;
+}
+.ed-tool:hover{background:var(--soft);border-color:#d3e6f7;color:var(--azul)}
+.ed-tool span{width:22px;text-align:center;font-size:1.05rem;flex:none}
+
+/* centro: lienzo */
+.ed-center{display:flex;flex-direction:column;min-width:0;background:
+  radial-gradient(circle at 50% 0%, #eaf1f8, #dfe8f2);}
+.ed-lienzo{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:26px;overflow:auto}
+.ev-canvas{
+  border:none;border-radius:12px;overflow:hidden;display:block;background:var(--azul-noche);
+  box-shadow:0 22px 60px rgba(2,28,56,.32), 0 0 0 1px rgba(2,28,56,.06);
+  max-width:100%;max-height:100%;
+}
+.ev-canvas.deck{width:100%;aspect-ratio:16/9}
+.ev-canvas.movil{height:100%;width:auto;aspect-ratio:9/17}
+.ed-hint{
+  flex:none;text-align:center;font-size:.78rem;color:var(--muted);padding:.5rem 1rem .7rem;background:#fff;
+  border-top:1px solid var(--line);
+}
+.ed-hint b{color:var(--azul)}
+
+/* panel derecho: propiedades */
+.ed-right{background:#fff;border-left:1px solid var(--line);overflow-y:auto;padding:1rem .95rem 2rem}
+.ed-prop-tit{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.2rem}
+.ed-prop-tipo{font-size:1.05rem;font-weight:800;letter-spacing:-.01em;margin-bottom:1rem;color:var(--azul);display:flex;align-items:center;gap:.5rem}
+.ed-prop-grupo{margin-bottom:1.1rem}
+.ed-prop-lbl{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#9aa8bd;margin-bottom:.45rem}
+.ed-prop-fila{display:flex;gap:.4rem;flex-wrap:wrap}
+.ed-pb{
+  min-width:38px;height:38px;border-radius:10px;border:1.5px solid var(--line);background:#fff;
+  font-size:.95rem;font-weight:800;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;
+  gap:.4rem;padding:0 .7rem;transition:all .12s ease;
+}
+.ed-pb:hover{border-color:var(--azul-vital);background:var(--soft);color:var(--azul)}
+.ed-pb.ancho{width:100%}
+.ed-pb.rojo{border-color:#f5c6c9;color:var(--rojo)}
+.ed-pb.rojo:hover{background:#fdeaec;border-color:var(--rojo)}
+.ed-sw{width:30px;height:30px;min-width:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.ed-sw:hover{transform:scale(1.12)}
+.ed-vacio{color:var(--muted);font-size:.86rem;line-height:1.5;text-align:center;padding:2rem .5rem;border:2px dashed var(--line);border-radius:14px;margin-top:.5rem}
+.ed-vacio .emoji{font-size:2rem;display:block;margin-bottom:.5rem;opacity:.7}
+
+/* historial dentro del panel derecho */
+.ed-hist-item{display:flex;align-items:center;gap:.6rem;border:1.5px solid var(--line);border-radius:10px;padding:.5rem .7rem;font-size:.8rem;margin-bottom:.4rem}
+.ed-hist-item b{color:var(--azul)}
+.ed-hist-item span{flex:1;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* modo código en la página */
+.ed-codigo{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;padding:1.4rem;overflow:auto;min-height:0}
+@media (max-width:900px){.ed-codigo{grid-template-columns:1fr}}
+.ed-cod-lado{min-width:0;display:flex;flex-direction:column}
+.ed-cod-lado .code-editor{flex:1;min-height:320px}
+.ed-page[data-modo-editor="codigo"] .ed-hint{display:none}
+
+/* manija de redimensionado global (en la página, no en iframe) — ya está en ESTILO_EDITOR interno */
+
+.visual-hint b{color:var(--azul)}
+
+/* ---------- Editor visual (tipo Canva) [legacy modal, sin uso] ---------- */
 .visual-barra{
   display:flex;align-items:center;gap:.55rem;margin-bottom:.9rem;flex-wrap:wrap;
 }
