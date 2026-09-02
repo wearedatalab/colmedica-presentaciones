@@ -43,11 +43,17 @@
     }
   } catch (e) { /* sin storage: visor del cliente */ }
 
-  /* ---------- Modo: desktop (deck) o móvil (historias) ---------- */
+  /* ---------- Modo: desktop (deck) o móvil (historias) ----------
+     Si abren el link desde un teléfono, por defecto se muestra la versión
+     historias (9:16). El comercial puede forzar con ?m=desktop|movil. */
   const qs = new URLSearchParams(location.search);
   const forzado = qs.get('m');
-  const esMovilReal = matchMedia('(max-width: 820px)').matches;
-  let modo = forzado === 'movil' ? 'movil' : forzado === 'desktop' ? 'desktop' : (esMovilReal ? 'movil' : 'desktop');
+  const ua = navigator.userAgent || '';
+  const esTelefono =
+    /iPhone|iPod|Android.*Mobile|Windows Phone|BlackBerry|BB10|IEMobile|Opera Mini/i.test(ua) ||
+    (matchMedia('(max-width: 820px)').matches && matchMedia('(pointer: coarse)').matches) ||
+    matchMedia('(max-width: 640px)').matches; // pantallas muy angostas (fallback)
+  let modo = forzado === 'movil' ? 'movil' : forzado === 'desktop' ? 'desktop' : (esTelefono ? 'movil' : 'desktop');
   document.body.dataset.modo = modo;
 
   const waLink = (txt) => {
