@@ -69,16 +69,33 @@
       <!-- ===== MODO VISUAL (tipo Canva) ===== -->
       <div id="modo-visual">
         <div class="visual-barra">
-          <button class="btn btn-linea btn-sm" id="ev-add-texto">＋ Texto</button>
-          <button class="btn btn-linea btn-sm" id="ev-add-imagen">＋ Imagen</button>
+          <div class="ev-menu-wrap">
+            <button class="btn btn-azul btn-sm" id="ev-add">＋ Agregar ▾</button>
+            <div class="ev-menu" id="ev-add-menu">
+              <button data-el="titulo"><span>🅣</span> Título grande</button>
+              <button data-el="subtitulo"><span>🅢</span> Subtítulo</button>
+              <button data-el="parrafo"><span>¶</span> Párrafo</button>
+              <button data-el="pill"><span>🔴</span> Pastilla</button>
+              <button data-el="tarjeta"><span>▢</span> Tarjeta</button>
+              <button data-el="cifra"><span>#️⃣</span> Cifra destacada</button>
+              <button data-el="icono"><span>😊</span> Ícono / emoji</button>
+              <button data-el="imagen"><span>🖼️</span> Imagen</button>
+              <button data-el="variable"><span>{ }</span> Variable de cliente</button>
+            </div>
+          </div>
+          <button class="btn btn-linea btn-sm" id="ev-fondo">🖼️ Fondo</button>
+          <button class="btn btn-linea btn-sm" id="ev-blanco">▢ Slide en blanco</button>
           <button class="btn btn-linea btn-sm" id="ev-deshacer" disabled>↩️ Deshacer</button>
-          <span class="visual-hint">Haz <b>clic</b> para seleccionar · <b>doble clic</b> para editar texto · <b>arrastra</b> para mover</span>
+          <span class="visual-hint"><b>Clic</b> selecciona · <b>doble clic</b> edita texto · <b>arrastra</b> para mover · esquina para <b>redimensionar</b></span>
           <button class="btn btn-fantasma btn-xs" id="ms-original" style="margin-left:auto">↺ Volver al original</button>
         </div>
         <div class="visual-lienzo" id="visual-lienzo">
           <iframe id="ev-canvas" class="ev-canvas" title="Editor visual del slide"></iframe>
         </div>
       </div>
+
+      <!-- menú de variables (para insertar chips en textos) -->
+      <div class="ev-menu" id="ev-var-menu"></div>
 
       <!-- ===== MODO CÓDIGO ===== -->
       <div id="modo-codigo" style="display:none">

@@ -178,7 +178,7 @@
     .ed-edit{outline:2px solid #ffd34d !important;outline-offset:2px;cursor:text}
     .ed-tk{background:rgba(0,159,227,.28);outline:1px dashed rgba(120,215,255,.85);border-radius:.3em;padding:0 .12em}
     #ed-tb{
-      position:absolute;z-index:9999;display:none;align-items:center;gap:4px;
+      position:absolute;z-index:9999;display:none;align-items:center;gap:4px;flex-wrap:wrap;max-width:92vw;
       background:#0e1a2b;border:1px solid rgba(255,255,255,.25);border-radius:12px;
       padding:6px 8px;box-shadow:0 12px 30px rgba(0,0,0,.5);
       font-family:'Red Hat Display',system-ui,sans-serif;
@@ -186,10 +186,16 @@
     #ed-tb button{
       border:none;background:rgba(255,255,255,.08);color:#fff;border-radius:8px;
       min-width:30px;height:30px;font-size:14px;font-weight:800;cursor:pointer;padding:0 7px;
-      font-family:inherit;
+      font-family:inherit;line-height:1;
     }
     #ed-tb button:hover{background:rgba(0,159,227,.5)}
+    #ed-tb .sep{width:1px;height:22px;background:rgba(255,255,255,.2);margin:0 2px}
     #ed-tb .sw{width:18px;height:18px;min-width:18px;border-radius:50%;border:2px solid rgba(255,255,255,.5);padding:0}
+    #ed-rz{
+      position:fixed;display:none;width:15px;height:15px;z-index:9998;
+      background:#00d2ff;border:2px solid #fff;border-radius:3px;cursor:nwse-resize;
+      box-shadow:0 1px 4px rgba(0,0,0,.4);
+    }
   `;
 
   const ev = {
@@ -240,41 +246,27 @@
     });
   }
 
-  /* --- unidades que escalan con el slide: cqi en deck, vw/vh en historias.
-     Se miden contra el contenedor real (documentElement da 0 en el iframe). --- */
-  function refRect() {
-    // el tamaño visual del iframe = el viewport interno (100vw/100cqi), medido
-    // desde el documento padre porque dentro del iframe reporta 0
-    const r = canvas().getBoundingClientRect();
-    return { w: r.width || 1, h: r.height || 1 };
-  }
-  function aUnidadX(px) {
-    const { w } = refRect();
-    return (px * 100 / w).toFixed(2) + (tabActual === 'deck' ? 'cqi' : 'vw');
-  }
-  function aUnidadY(px) {
-    const { w, h } = refRect();
-    return tabActual === 'deck' ? (px * 100 / w).toFixed(2) + 'cqi' : (px * 100 / h).toFixed(2) + 'vh';
-  }
-  const uAPx = (valor) => {
-    if (!valor) return 0;
-    const { w, h } = refRect();
-    const n = parseFloat(valor);
-    if (valor.endsWith('cqi') || valor.endsWith('vw')) return n * w / 100;
-    if (valor.endsWith('vh')) return n * h / 100;
-    return n;
-  };
+  /* --- font-size en cqi (escala con el ancho del slide en ambos modos) --- */
+  function refW() { return canvas().getBoundingClientRect().width || 1; }
+  const aFont = (px) => (px * 100 / refW()).toFixed(2) + 'cqi';
 
-  /* --- selección ---- */
+  /* --- posición libre en % del contenedor posicionado (.slide / .h-contenido) --- */
+  function contRect(el) {
+    const c = el.offsetParent || ev.idoc.querySelector(tabActual === 'deck' ? '.slide' : '.h-contenido') || ev.idoc.body;
+    const r = c.getBoundingClientRect();
+    return { w: r.width || 1, h: r.height || 1, left: r.left, top: r.top };
+  }
+  const pct = (v) => parseFloat(v) || 0;
+  const esLibre = (el) => el && el.dataset && el.dataset.libre === '1';
+
+  /* --- selección --- */
   const CONTENEDORES = '.cifra,.h-cifra,.gama-card,.benef-card,.feature,.h-item,.check,.asesor-chip,.video-marco,.telefono,.foto-panel,.clinica-card,.h-clinica';
 
   function elegirObjetivo(t) {
     const root = ev.idoc.getElementById('ed-root');
-    if (!root || !root.contains(t)) {
-      // fondo de historia: es hermano del contenido
-      if (t.tagName === 'IMG' && t.classList.contains('h-fondo')) return t;
-      return null;
-    }
+    if (t.classList && t.classList.contains('h-fondo')) return t; // fondo historia
+    if (t.closest && t.closest('[data-libre]')) return t.closest('[data-libre]');
+    if (!root || !root.contains(t)) return null;
     const chip = t.closest('[data-tk]');
     if (chip) return chip;
     if (t.closest('[data-tkb]')) return 'bloque';
@@ -291,80 +283,184 @@
   function snapshot() {
     const root = ev.idoc.getElementById('ed-root');
     ev.undo.push(root.innerHTML);
-    if (ev.undo.length > 40) ev.undo.shift();
+    if (ev.undo.length > 60) ev.undo.shift();
     $('#ev-deshacer').disabled = false;
+  }
+
+  function quitarHandle() {
+    const h = ev.idoc && ev.idoc.getElementById('ed-rz');
+    if (h) h.style.display = 'none';
   }
 
   function deseleccionar() {
     if (ev.editando) terminarEdicion();
+    quitarHandle();
     if (ev.sel) ev.sel.classList.remove('ed-sel');
     ev.sel = null;
     const tb = ev.idoc.getElementById('ed-tb');
     if (tb) tb.style.display = 'none';
+    cerrarVarMenu();
   }
 
   function seleccionar(el) {
     deseleccionar();
     ev.sel = el;
     el.classList.add('ed-sel');
+    // manija de redimensionado (global, sigue al elemento) para libres e imágenes
+    const redimensionable = (esLibre(el) || el.tagName === 'IMG') && !el.classList.contains('h-fondo') && !el.hasAttribute('data-tk');
+    ev.redim = redimensionable;
     pintarToolbar();
+  }
+
+  /* clasifica el elemento seleccionado para decidir los controles */
+  function tipoDe(el) {
+    if (el.classList.contains('h-fondo')) return 'fondo';
+    if (el.hasAttribute('data-tk')) return 'chip';
+    if (el.tagName === 'IMG') return 'img';
+    if (el.dataset.forma === '1' || el.classList.contains('pill') || el.classList.contains('gama-card') || el.classList.contains('benef-card') || el.classList.contains('cifra')) return 'forma';
+    return 'texto';
   }
 
   function pintarToolbar() {
     const tb = ev.idoc.getElementById('ed-tb');
     const el = ev.sel;
     if (!tb || !el) return;
-    const esImg = el.tagName === 'IMG';
-    const esChip = el.hasAttribute('data-tk');
-    const esFondo = esImg && el.classList.contains('h-fondo');
-    let html = '';
-    if (esImg) {
-      html += `<button data-a="img" title="Cambiar imagen">🖼️</button>`;
-    } else if (!esChip) {
-      html += `<button data-a="b" title="Negrita">B</button>`;
-      html += `<button data-a="i" title="Cursiva" style="font-style:italic">I</button>`;
-      html += `<button data-a="a-" title="Texto más pequeño">A−</button>`;
-      html += `<button data-a="a+" title="Texto más grande">A＋</button>`;
+    const tipo = tipoDe(el);
+    let h = '';
+    if (tipo === 'img') {
+      h += `<button data-a="img" title="Cambiar imagen">🖼️ Cambiar</button>`;
+      h += `<button data-a="rad" title="Redondear esquinas">⬭</button>`;
+    } else if (tipo === 'texto') {
+      h += `<button data-a="b" title="Negrita">B</button>`;
+      h += `<button data-a="i" title="Cursiva" style="font-style:italic">I</button>`;
+      h += `<button data-a="a-" title="Más pequeño">A−</button>`;
+      h += `<button data-a="a+" title="Más grande">A＋</button>`;
+      h += `<button data-a="ali" title="Alineación">⬌</button>`;
       [['#ffffff', 'blanco'], ['#8fd8ff', 'celeste'], ['#E30613', 'rojo'], ['#ffd34d', 'dorado']].forEach(([c, n]) => {
-        html += `<button class="sw" data-a="col" data-c="${c}" title="${n}" style="background:${c}"></button>`;
+        h += `<button class="sw" data-a="col" data-c="${c}" title="${n}" style="background:${c}"></button>`;
       });
+      h += `<button data-a="var" title="Insertar dato del cliente">{ }</button>`;
+    } else if (tipo === 'forma') {
+      [['rgba(255,255,255,.08)', 'vidrio'], ['#0058A2', 'azul'], ['#E30613', 'rojo'], ['#032a52', 'navy']].forEach(([c, n]) => {
+        h += `<button class="sw" data-a="bg" data-c="${c}" title="Fondo ${n}" style="background:${c}"></button>`;
+      });
+      h += `<button data-a="rad" title="Redondear">⬭</button>`;
     }
-    if (!esFondo) html += `<button data-a="reset" title="Devolver a su posición">⤾</button>`;
-    if (!esFondo) html += `<button data-a="del" title="Eliminar">🗑️</button>`;
-    tb.innerHTML = html;
+    if (tipo !== 'fondo') {
+      h += `<span class="sep"></span>`;
+      h += `<button data-a="front" title="Traer al frente">⤒</button>`;
+      h += `<button data-a="back" title="Enviar atrás">⤓</button>`;
+      if (esLibre(el)) h += `<button data-a="dup" title="Duplicar">⧉</button>`;
+      h += `<button data-a="reset" title="Devolver a su posición">⤾</button>`;
+      h += `<button data-a="del" title="Eliminar">🗑️</button>`;
+    } else {
+      h += `<button data-a="img" title="Cambiar imagen de fondo">🖼️ Cambiar</button>`;
+    }
+    tb.innerHTML = h;
     tb.style.display = 'flex';
+    posToolbar();
+  }
+
+  function posToolbar() {
+    const tb = ev.idoc.getElementById('ed-tb');
+    const el = ev.sel;
+    if (!tb || !el || tb.style.display === 'none') return;
     const r = el.getBoundingClientRect();
-    const tbAlto = 44;
-    let top = r.top - tbAlto - 6;
-    if (top < 4) top = r.bottom + 6;
-    tb.style.top = Math.min(top, ev.idoc.documentElement.clientHeight - tbAlto) + 'px';
-    tb.style.left = Math.max(4, Math.min(r.left, ev.idoc.documentElement.clientWidth - 330)) + 'px';
+    const vw = ev.idoc.documentElement.clientWidth || refW();
+    const tbH = tb.offsetHeight || 44, tbW = tb.offsetWidth || 320;
+    let top = r.top - tbH - 8;
+    if (top < 4) top = Math.min(r.bottom + 8, (ev.idoc.documentElement.clientHeight || 600) - tbH - 4);
+    tb.style.top = Math.max(4, top) + 'px';
+    tb.style.left = Math.max(4, Math.min(r.left, vw - tbW - 4)) + 'px';
+    // manija de redimensionado en la esquina inferior derecha del elemento
+    const rz = ev.idoc.getElementById('ed-rz');
+    if (rz) {
+      if (ev.redim) { rz.style.display = 'block'; rz.style.left = (r.right - 7) + 'px'; rz.style.top = (r.bottom - 7) + 'px'; }
+      else rz.style.display = 'none';
+    }
   }
 
   function accionToolbar(a, boton) {
     const el = ev.sel;
     if (!el) return;
     if (a === 'del') { snapshot(); deseleccionar(); el.remove(); return; }
-    if (a === 'reset') { snapshot(); el.style.translate = ''; pintarToolbar(); return; }
-    if (a === 'img') {
-      abrirGaleria(src => { snapshot(); el.src = src; });
+    if (a === 'dup') {
+      snapshot();
+      const c = el.cloneNode(true);
+      c.classList.remove('ed-sel'); const hh = c.querySelector('.ev-rz'); if (hh) hh.remove();
+      c.style.left = (pct(el.style.left) + 3) + '%';
+      c.style.top = (pct(el.style.top) + 3) + '%';
+      el.parentElement.appendChild(c);
+      seleccionar(c);
       return;
     }
+    if (a === 'front') { snapshot(); el.style.zIndex = 20; return; }
+    if (a === 'back') { snapshot(); el.style.zIndex = 1; return; }
+    if (a === 'reset') { snapshot(); el.style.translate = ''; if (esLibre(el)) { el.style.left = '30%'; el.style.top = '35%'; } posToolbar(); return; }
+    if (a === 'img') { abrirGaleria(src => { snapshot(); el.src = src; }); return; }
+    if (a === 'rad') {
+      snapshot();
+      const actual = pct(getComputedStyle(el).borderRadius);
+      el.style.borderRadius = actual > 0 ? '0' : '2cqi';
+      return;
+    }
+    if (a === 'var') { abrirVarMenu(boton); return; }
     snapshot();
     const cs = ev.idoc.defaultView.getComputedStyle(el);
     if (a === 'b') el.style.fontWeight = parseInt(cs.fontWeight) >= 700 ? '400' : '800';
     if (a === 'i') el.style.fontStyle = cs.fontStyle === 'italic' ? 'normal' : 'italic';
-    if (a === 'a+' || a === 'a-') {
-      const px = parseFloat(cs.fontSize) * (a === 'a+' ? 1.12 : 0.9);
-      el.style.fontSize = aUnidadX(px);
-    }
+    if (a === 'a+' || a === 'a-') el.style.fontSize = aFont(parseFloat(cs.fontSize) * (a === 'a+' ? 1.12 : 0.9));
+    if (a === 'ali') el.style.textAlign = cs.textAlign === 'center' ? 'left' : 'center';
     if (a === 'col') el.style.color = boton.dataset.c;
+    if (a === 'bg') { el.style.background = boton.dataset.c; if (boton.dataset.c.startsWith('rgba')) el.style.backdropFilter = 'blur(6px)'; }
+  }
+
+  /* --- menú de variables (insertar chip en un texto) --- */
+  function cerrarVarMenu() { const m = $('#ev-var-menu'); if (m) m.classList.remove('abierto'); }
+  function abrirVarMenu(boton) {
+    const m = $('#ev-var-menu');
+    m.innerHTML = '';
+    CMP.TOKENS.filter(tk => !['grid_clinicas', 'grid_clinicas_movil', 'viajes_texto', 'viajes_texto_movil'].includes(tk.t.replace(/[{}]/g, ''))).forEach(tk => {
+      const b = document.createElement('button');
+      b.innerHTML = `<span>{ }</span> ${tk.d}`;
+      b.addEventListener('click', () => { insertarVariable(tk.t.replace(/[{}]/g, '')); cerrarVarMenu(); });
+      m.appendChild(b);
+    });
+    // posicionar cerca del botón (coordenadas del iframe → documento padre)
+    const cr = canvas().getBoundingClientRect();
+    const br = boton.getBoundingClientRect();
+    m.style.left = Math.min(cr.left + br.left, window.innerWidth - 260) + 'px';
+    m.style.top = (cr.top + br.bottom + 6) + 'px';
+    m.classList.add('abierto');
+  }
+  function insertarVariable(tk) {
+    const el = ev.sel;
+    if (!el) return;
+    snapshot();
+    const span = ev.idoc.createElement('span');
+    span.setAttribute('data-tk', tk);
+    span.setAttribute('contenteditable', 'false');
+    span.className = 'ed-tk';
+    span.textContent = CTX_DEMO[tk] ?? tk;
+    // insertar en el cursor si se está editando, si no al final
+    const sel = ev.idoc.getSelection();
+    if (ev.editando === el && sel && sel.rangeCount && el.contains(sel.anchorNode)) {
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(span);
+      range.setStartAfter(span); range.collapse(true);
+      sel.removeAllRanges(); sel.addRange(range);
+    } else {
+      el.appendChild(ev.idoc.createTextNode(' '));
+      el.appendChild(span);
+    }
   }
 
   /* --- edición de texto en el lugar --- */
   function empezarEdicion(el) {
     if (el.tagName === 'IMG' || el.hasAttribute('data-tk')) return;
-    snapshot(); // el estado previo queda registrado para deshacer
+    quitarHandle();
+    snapshot();
     ev.editando = el;
     el.setAttribute('contenteditable', 'true');
     el.classList.add('ed-edit');
@@ -380,11 +476,9 @@
     el.removeAttribute('contenteditable');
     el.classList.remove('ed-edit');
     if (ev._antesEdicion === el.innerHTML) {
-      // no cambió nada: descartar el snapshot de la edición
       ev.undo.pop();
       $('#ev-deshacer').disabled = !ev.undo.length;
     } else {
-      // si editó una cifra animada, sincronizar el número objetivo
       const cuenta = el.hasAttribute('data-cuenta') ? el : el.querySelector('[data-cuenta]');
       if (cuenta) {
         const n = parseInt(cuenta.textContent.replace(/\D/g, ''), 10);
@@ -403,39 +497,62 @@
     }, true);
 
     idoc.addEventListener('mousedown', (e) => {
-      const tb = e.target.closest('#ed-tb');
-      if (tb) {
+      if (e.target.closest('#ed-tb')) {
         const b = e.target.closest('button');
         if (b) { e.preventDefault(); accionToolbar(b.dataset.a, b); }
         return;
       }
+      // manija de redimensionado
+      if (e.target.id === 'ed-rz') {
+        e.preventDefault();
+        const el = ev.sel;
+        ev.drag = {
+          modo: 'resize', el, x0: e.clientX, y0: e.clientY, movio: false,
+          w0: el.offsetWidth, h0: el.offsetHeight, cont: contRect(el),
+          altura: tipoDe(el) === 'forma',
+        };
+        return;
+      }
       if (ev.editando) {
-        if (e.target === ev.editando || ev.editando.contains(e.target)) return; // seguir editando
+        if (e.target === ev.editando || ev.editando.contains(e.target)) return;
         terminarEdicion();
       }
+      cerrarVarMenu();
       const obj = elegirObjetivo(e.target);
-      if (obj === 'bloque') { deseleccionar(); toast('Este bloque es dinámico (variable): edítalo en modo </> Código'); return; }
+      if (obj === 'bloque') { deseleccionar(); toast('Bloque dinámico (variable): edítalo en modo </> Código'); return; }
       if (!obj) { deseleccionar(); return; }
       if (obj !== ev.sel) seleccionar(obj);
+      if (obj.classList.contains('h-fondo')) { e.preventDefault(); return; } // fondo no se arrastra
       // preparar arrastre
-      if (!obj.classList.contains('h-fondo')) {
+      if (esLibre(obj)) {
+        ev.drag = { modo: 'move-libre', el: obj, x0: e.clientX, y0: e.clientY, movio: false,
+          l0: pct(obj.style.left), t0: pct(obj.style.top), cont: contRect(obj) };
+      } else {
         const t = (obj.style.translate || '').split(/\s+/);
-        ev.drag = {
-          el: obj, x0: e.clientX, y0: e.clientY, movio: false,
-          tx: uAPx(t[0] || '', false), ty: uAPx(t[1] || '', true),
-        };
+        const w = refW();
+        ev.drag = { modo: 'move-flujo', el: obj, x0: e.clientX, y0: e.clientY, movio: false,
+          tx: (parseFloat(t[0]) || 0) * w / 100, ty: (parseFloat(t[1]) || 0) * w / 100 };
       }
       e.preventDefault();
     }, true);
 
     idoc.addEventListener('mousemove', (e) => {
       if (!ev.drag) return;
-      const dx = e.clientX - ev.drag.x0;
-      const dy = e.clientY - ev.drag.y0;
-      if (!ev.drag.movio && Math.hypot(dx, dy) < 4) return;
-      if (!ev.drag.movio) { ev.drag.movio = true; snapshot(); }
-      ev.drag.el.style.translate = `${aUnidadX(ev.drag.tx + dx)} ${aUnidadY(ev.drag.ty + dy)}`;
-      pintarToolbar();
+      const d = ev.drag;
+      const dx = e.clientX - d.x0, dy = e.clientY - d.y0;
+      if (!d.movio && Math.hypot(dx, dy) < 4) return;
+      if (!d.movio) { d.movio = true; snapshot(); }
+      if (d.modo === 'resize') {
+        d.el.style.width = Math.max(4, (d.w0 + dx) / d.cont.w * 100).toFixed(2) + '%';
+        if (d.altura) d.el.style.height = Math.max(4, (d.h0 + dy) / d.cont.h * 100).toFixed(2) + '%';
+      } else if (d.modo === 'move-libre') {
+        d.el.style.left = (d.l0 + dx / d.cont.w * 100).toFixed(2) + '%';
+        d.el.style.top = (d.t0 + dy / d.cont.h * 100).toFixed(2) + '%';
+      } else {
+        const w = refW();
+        d.el.style.translate = `${((d.tx + dx) * 100 / w).toFixed(2)}cqi ${((d.ty + dy) * 100 / w).toFixed(2)}cqi`;
+      }
+      posToolbar();
     }, true);
 
     idoc.addEventListener('mouseup', () => { ev.drag = null; }, true);
@@ -449,10 +566,10 @@
 
     idoc.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { e.preventDefault(); ev.editando ? terminarEdicion() : deseleccionar(); }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && ev.sel && !ev.editando) {
-        e.preventDefault(); accionToolbar('del');
-      }
+      if ((e.key === 'Delete') && ev.sel && !ev.editando) { e.preventDefault(); accionToolbar('del'); }
     });
+
+    idoc.addEventListener('scroll', posToolbar, true);
   }
 
   function montarCanvas() {
@@ -471,6 +588,9 @@
       const tb = ev.idoc.createElement('div');
       tb.id = 'ed-tb';
       ev.idoc.body.appendChild(tb);
+      const rz = ev.idoc.createElement('div');
+      rz.id = 'ed-rz';
+      ev.idoc.body.appendChild(rz);
       conectarCanvas();
       ev.listo = true;
     };
@@ -484,8 +604,10 @@
   function serializarVisual() {
     if (!ev.idoc || !ev.listo) return borrador[tabActual];
     if (ev.editando) terminarEdicion();
+    quitarHandle();
     const root = ev.idoc.getElementById('ed-root');
     const clon = root.cloneNode(true);
+    $$('.ev-rz', clon).forEach(h => h.remove());
     $$('[data-tk]', clon).forEach(ch => ch.replaceWith(ev.idoc.createTextNode(`{{${ch.getAttribute('data-tk')}}}`)));
     $$('[data-tkb]', clon).forEach(bl => bl.replaceWith(ev.idoc.createTextNode(`{{${bl.getAttribute('data-tkb')}}}`)));
     $$('*', clon).forEach(n => {
@@ -498,36 +620,130 @@
     return clon.innerHTML.trim();
   }
 
-  /* --- agregar elementos --- */
-  $('#ev-add-texto').addEventListener('click', () => {
+  /* ============================================================
+     PALETA: crear elementos nuevos (rediseño libre)
+     ============================================================ */
+  const DECK = () => tabActual === 'deck';
+
+  function nuevoElemento(tipo) {
     if (!ev.listo) return;
     snapshot();
     const root = ev.idoc.getElementById('ed-root');
-    const div = ev.idoc.createElement('div');
-    if (tabActual === 'deck') {
-      div.setAttribute('style', 'position:absolute;left:34cqi;top:24cqi;font-size:2.4cqi;font-weight:700;max-width:44cqi;z-index:6');
-    } else {
-      div.setAttribute('style', 'position:absolute;left:8vw;top:20vh;font-size:1.05rem;font-weight:700;max-width:80vw;z-index:6');
-    }
-    div.textContent = 'Escribe aquí tu texto…';
-    root.appendChild(div);
-    seleccionar(div);
-    empezarEdicion(div);
-  });
+    const d = ev.idoc.createElement('div');
+    d.dataset.libre = '1';
+    const base = 'position:absolute;left:28%;top:34%;z-index:8;';
+    let post = null;
 
-  $('#ev-add-imagen').addEventListener('click', () => {
+    if (tipo === 'titulo') {
+      d.setAttribute('style', base + (DECK() ? 'font-size:5cqi;' : 'font-size:8vw;') + 'font-weight:800;color:#fff;max-width:60%;line-height:1.05;letter-spacing:-.02em');
+      d.textContent = 'Título nuevo';
+    } else if (tipo === 'subtitulo') {
+      d.setAttribute('style', base + (DECK() ? 'font-size:2.6cqi;' : 'font-size:4.6vw;') + 'font-weight:700;color:#fff;max-width:55%');
+      d.textContent = 'Subtítulo';
+    } else if (tipo === 'parrafo') {
+      d.setAttribute('style', base + (DECK() ? 'font-size:1.6cqi;' : 'font-size:3.4vw;') + 'font-weight:500;color:#dbe8f7;max-width:48%;line-height:1.5');
+      d.textContent = 'Escribe aquí un párrafo descriptivo para tu slide.';
+    } else if (tipo === 'pill') {
+      d.className = 'pill'; d.dataset.forma = '1';
+      d.setAttribute('style', base + 'display:inline-flex;background:#E30613;color:#fff;font-weight:800;' + (DECK() ? 'font-size:1.35cqi;padding:.5cqi 1.8cqi;' : 'font-size:3vw;padding:.4em 1.1em;') + 'border-radius:999px;letter-spacing:.04em');
+      d.textContent = 'ETIQUETA';
+    } else if (tipo === 'tarjeta') {
+      d.dataset.forma = '1';
+      d.setAttribute('style', base + 'width:32%;height:26%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:2cqi;backdrop-filter:blur(6px)');
+    } else if (tipo === 'cifra') {
+      d.dataset.forma = '1';
+      d.setAttribute('style', base + 'background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:1.6cqi;' + (DECK() ? 'padding:1.6cqi 2.4cqi;' : 'padding:3vw 4vw;') + 'backdrop-filter:blur(6px);color:#fff');
+      d.innerHTML = DECK()
+        ? '<div style="font-size:3.6cqi;font-weight:800;line-height:1">100<small style="font-size:1.7cqi">+</small></div><div style="font-size:1.15cqi;font-weight:600;opacity:.78;margin-top:.5cqi">tu etiqueta aquí</div>'
+        : '<div style="font-size:7vw;font-weight:800;line-height:1">100<small style="font-size:3.5vw">+</small></div><div style="font-size:2.6vw;font-weight:600;opacity:.78;margin-top:1vw">tu etiqueta aquí</div>';
+    } else if (tipo === 'icono') {
+      d.setAttribute('style', base + (DECK() ? 'font-size:7cqi;' : 'font-size:14vw;') + 'line-height:1');
+      d.textContent = '⭐';
+    }
+    root.appendChild(d);
+    seleccionar(d);
+    if (['titulo', 'subtitulo', 'parrafo', 'pill', 'icono'].includes(tipo)) empezarEdicion(d);
+  }
+
+  function nuevaImagen() {
     if (!ev.listo) return;
     abrirGaleria(src => {
       snapshot();
       const root = ev.idoc.getElementById('ed-root');
       const img = ev.idoc.createElement('img');
-      img.src = src;
-      img.setAttribute('style', tabActual === 'deck'
-        ? 'position:absolute;left:36cqi;top:16cqi;width:26cqi;border-radius:1.6cqi;box-shadow:0 2cqi 5cqi rgba(0,0,0,.45);z-index:6'
-        : 'position:absolute;left:25vw;top:16vh;width:50vw;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.45);z-index:6');
+      img.src = src; img.dataset.libre = '1';
+      img.setAttribute('style', 'position:absolute;left:30%;top:22%;width:34%;border-radius:1.6cqi;box-shadow:0 2cqi 5cqi rgba(0,0,0,.45);z-index:8;object-fit:cover');
       root.appendChild(img);
       seleccionar(img);
     });
+  }
+
+  function nuevaVariable() {
+    if (!ev.listo) return;
+    snapshot();
+    const root = ev.idoc.getElementById('ed-root');
+    const d = ev.idoc.createElement('div');
+    d.dataset.libre = '1';
+    d.setAttribute('style', 'position:absolute;left:30%;top:38%;z-index:8;' + (DECK() ? 'font-size:2.4cqi;' : 'font-size:4.6vw;') + 'font-weight:700;color:#fff');
+    const span = ev.idoc.createElement('span');
+    span.setAttribute('data-tk', 'cliente'); span.setAttribute('contenteditable', 'false');
+    span.className = 'ed-tk'; span.textContent = CTX_DEMO.cliente;
+    d.appendChild(span);
+    root.appendChild(d);
+    seleccionar(d);
+  }
+
+  /* --- menú Agregar --- */
+  const addMenu = $('#ev-add-menu');
+  $('#ev-add').addEventListener('click', (e) => { e.stopPropagation(); addMenu.classList.toggle('abierto'); });
+  document.addEventListener('click', () => addMenu.classList.remove('abierto'));
+  addMenu.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    addMenu.classList.remove('abierto');
+    const el = b.dataset.el;
+    if (el === 'imagen') nuevaImagen();
+    else if (el === 'variable') nuevaVariable();
+    else nuevoElemento(el);
+  });
+
+  /* --- fondo del slide --- */
+  $('#ev-fondo').addEventListener('click', () => {
+    if (!ev.listo) return;
+    abrirGaleria(src => {
+      snapshot();
+      if (tabActual === 'story') {
+        let f = ev.idoc.querySelector('.h-fondo');
+        if (f) f.src = src;
+        return;
+      }
+      let f = ev.idoc.querySelector('.foto-fondo');
+      if (!f) {
+        f = ev.idoc.createElement('img');
+        f.className = 'foto-fondo';
+        f.setAttribute('style', 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0');
+        const root = ev.idoc.getElementById('ed-root');
+        root.insertBefore(f, root.firstChild);
+      }
+      f.src = src;
+      toast('Fondo actualizado');
+    });
+  });
+
+  /* --- slide en blanco --- */
+  $('#ev-blanco').addEventListener('click', () => {
+    if (!ev.listo) return;
+    if (!confirm('¿Vaciar este slide para rediseñarlo desde cero? (Se conserva la marca inferior). Podrás deshacer.')) return;
+    snapshot();
+    deseleccionar();
+    const root = ev.idoc.getElementById('ed-root');
+    if (tabActual === 'story') {
+      const fondo = ev.idoc.querySelector('.h-fondo');
+      root.innerHTML = '';
+      if (fondo && !root.contains(fondo)) { /* el fondo vive fuera de ed-root en story */ }
+    } else {
+      root.innerHTML = '';
+    }
+    toast('Slide en blanco: agrega elementos con ＋ Agregar');
   });
 
   $('#ev-deshacer').addEventListener('click', () => {
