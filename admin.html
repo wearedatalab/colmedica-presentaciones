@@ -49,44 +49,78 @@
 
 <div class="pie-demo">Prototipo conceptual · <b>Colmédica Presenta</b> · Los valores y cifras son de demostración · Vigilado Supersalud</div>
 
-<!-- ============ MODAL EDITAR HTML DEL SLIDE ============ -->
+<!-- ============ MODAL EDITAR SLIDE (visual + código) ============ -->
 <div class="modal-fondo" id="modal-slide">
-  <div class="modal" style="width:min(1340px,100%)">
+  <div class="modal" style="width:min(1380px,100%)">
     <div class="modal-cab">
       <h3 id="ms-titulo">Editar slide</h3>
       <div class="tabs-editor">
-        <button class="tab-btn activo" data-tab="deck">🖥️ Versión desktop</button>
-        <button class="tab-btn" data-tab="story">📱 Versión móvil</button>
+        <button class="tab-btn activo" data-tab="deck">🖥️ Desktop</button>
+        <button class="tab-btn" data-tab="story">📱 Móvil</button>
+      </div>
+      <div class="tabs-editor" style="margin-left:.4rem">
+        <button class="tab-btn modo-btn activo" data-modo="visual">🎨 Visual</button>
+        <button class="tab-btn modo-btn" data-modo="codigo">&lt;/&gt; Código</button>
       </div>
       <button class="modal-cerrar" data-cerrar>✕</button>
     </div>
     <div class="modal-cuerpo">
-      <div class="editor-html-grid">
-        <div class="editor-html-lado">
-          <div class="editor-html-etq">
-            <span>HTML del slide <b id="ms-tab-nombre">· versión desktop</b></span>
-            <button class="btn btn-fantasma btn-xs" id="ms-original">↺ Volver al original</button>
-          </div>
-          <textarea id="ms-codigo" class="code-editor" spellcheck="false" wrap="off"></textarea>
-          <div class="tokens-etq">Variables disponibles — clic para insertar</div>
-          <div class="token-chips" id="ms-tokens"></div>
+
+      <!-- ===== MODO VISUAL (tipo Canva) ===== -->
+      <div id="modo-visual">
+        <div class="visual-barra">
+          <button class="btn btn-linea btn-sm" id="ev-add-texto">＋ Texto</button>
+          <button class="btn btn-linea btn-sm" id="ev-add-imagen">＋ Imagen</button>
+          <button class="btn btn-linea btn-sm" id="ev-deshacer" disabled>↩️ Deshacer</button>
+          <span class="visual-hint">Haz <b>clic</b> para seleccionar · <b>doble clic</b> para editar texto · <b>arrastra</b> para mover</span>
+          <button class="btn btn-fantasma btn-xs" id="ms-original" style="margin-left:auto">↺ Volver al original</button>
         </div>
+        <div class="visual-lienzo" id="visual-lienzo">
+          <iframe id="ev-canvas" class="ev-canvas" title="Editor visual del slide"></iframe>
+        </div>
+      </div>
 
-        <div class="editor-html-lado">
-          <div class="previa-etiqueta">Vista previa en vivo · datos de ejemplo (Familia Ramírez · Carolina)</div>
-          <iframe id="ms-previa-deck" class="previa-iframe" title="Vista previa desktop"></iframe>
-          <iframe id="ms-previa-story" class="previa-iframe movil" title="Vista previa móvil" style="display:none"></iframe>
-
-          <div style="margin-top:1.2rem">
-            <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.6rem">Historial de versiones</div>
-            <div id="ms-historial" style="display:flex;flex-direction:column;gap:.45rem"></div>
+      <!-- ===== MODO CÓDIGO ===== -->
+      <div id="modo-codigo" style="display:none">
+        <div class="editor-html-grid">
+          <div class="editor-html-lado">
+            <div class="editor-html-etq">
+              <span>HTML del slide <b id="ms-tab-nombre">· versión desktop</b></span>
+            </div>
+            <textarea id="ms-codigo" class="code-editor" spellcheck="false" wrap="off"></textarea>
+            <div class="tokens-etq">Variables disponibles — clic para insertar</div>
+            <div class="token-chips" id="ms-tokens"></div>
+          </div>
+          <div class="editor-html-lado">
+            <div class="previa-etiqueta">Vista previa en vivo · datos de ejemplo</div>
+            <iframe id="ms-previa-deck" class="previa-iframe" title="Vista previa desktop"></iframe>
+            <iframe id="ms-previa-story" class="previa-iframe movil" title="Vista previa móvil" style="display:none"></iframe>
           </div>
         </div>
       </div>
+
+      <div style="margin-top:1.2rem">
+        <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.6rem">Historial de versiones</div>
+        <div id="ms-historial" style="display:flex;flex-direction:column;gap:.45rem"></div>
+      </div>
+
     </div>
     <div class="modal-pie">
       <button class="btn btn-fantasma" data-cerrar>Cancelar</button>
       <button class="btn btn-azul" id="ms-guardar">Publicar nueva versión</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GALERÍA DE IMÁGENES ============ -->
+<div class="modal-fondo" id="modal-galeria">
+  <div class="modal" style="width:min(860px,100%)">
+    <div class="modal-cab">
+      <h3>Elige una imagen</h3>
+      <button class="modal-cerrar" data-cerrar-galeria>✕</button>
+    </div>
+    <div class="modal-cuerpo">
+      <div class="galeria-grid" id="galeria-grid"></div>
     </div>
   </div>
 </div>
